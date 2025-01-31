@@ -1,0 +1,51 @@
+@import url('https://fonts.cdnfonts.com/css/futura-black');
+@import url('https://fonts.googleapis.com/css2?family=Saira+Stencil+One&display=swap');
+* {
+    font-family: 'Futura Black', Geneva, Tahoma, sans-serif;
+    margin: 0;
+    padding: 0;
+}
+
+canvas {
+    position: relative;
+    background-color: #000;
+}
+
+#counter {
+    font-family: "Saira Stencil One", serif;
+    letter-spacing: 2px;
+    position: absolute;
+    color:white;
+}
+
+body {
+    overflow: hidden;
+    display:flex;
+    justify-content: center;
+    align-items: center;
+    background: #3f4c6b;
+}
+
+#main-container {
+    position: relative;
+}
+
+#menu {
+    letter-spacing: 10px;
+    display:flex;
+    flex-direction: column;
+}
+
+.menu-button {
+    font-size: 1.5rem;
+    background-color: #46526a;
+    border-style: outset;
+    border-radius: 0;
+    border-width: 2px;
+    border-color: #777777;
+    color:#777777;
+}
+
+.menu-button:hover{
+    background-color: #555c68;
+}
