@@ -6,7 +6,7 @@ const pauseButton = document.querySelector('#pause-button');
 const resetButton = document.querySelector('#reset-button');
 const counter = document.querySelector('#counter');
 
-
+let collisionEvent = new Event('collisionEvent');
 
 const canvas = document.querySelector('#gameField');
 let context = canvas.getContext('2d');
@@ -110,17 +110,34 @@ let nextFigure = getRandomTetromino();
 drawBorder();
 let pointsCounter = 0;
 let gameInterval;
+window.addEventListener('collisionEvent', (event) => {
+    pauseGame();
+    startButton.removeEventListener('click', startButtonEvent);
+    startButton.addEventListener('click', startButtonResetEvent);
+    let audio = new Audio(`offensiveEndGameAudio/${getRandomInt(4)}.mp3`);
+    audio.play();
+})
 
 //----------
 
-startButton.onclick = ()=>{
+startButton.addEventListener('click', startButtonEvent);
+
+function startButtonEvent (){
     pauseGame();
     startGame();
 }
+function startButtonResetEvent(){
+    startButton.addEventListener('click', startButtonEvent);
+    startButton.removeEventListener('click', startButtonResetEvent);
+
+    resetGame();
+    startGame();
+}
+
 pauseButton.onclick = pauseGame;
 resetButton.onclick = ()=>{
     pauseGame();
-    resetGame()
+    resetGame();
 };
 
 //----------
@@ -142,6 +159,10 @@ function pauseGame() {
 function startGame(){
     drawFigure(randomFigure);
     gameInterval = setInterval(()=>{
+        [res, side] = collisionCheck(randomFigure);
+        if(res){
+            window.dispatchEvent(new Event('collisionEvent'));
+        }
         clearField();
         [res, side] = moveFigureDown(randomFigure);
         if(res){
@@ -158,7 +179,7 @@ function startGame(){
         drawGameField();
         drawFigure(randomFigure);
         drawFigureOutline(randomFigure, getOutlineOffset(randomFigure));
-
+        drawBorder();
     }, 500);
 
     document.addEventListener('keydown', keysListener);
@@ -230,6 +251,12 @@ function keysListener(e){
             break;
         case 'KeyR':
             randomFigure.rotate();
+            [res, side] = collisionCheck(randomFigure);
+            if(res){
+                randomFigure.rotate();
+                randomFigure.rotate();
+                randomFigure.rotate();
+            }
             clearField();
             drawGameField();
             drawFigure(randomFigure);
@@ -505,6 +532,8 @@ function getOutlineOffset(figure){
                 if (figure.shape[i][j]){
                   if(cellMatrix[k][j+figure.x] !== 0){
                       minDistanceToObstacle = Math.min(minDistanceToObstacle, k-i-figure.y);
+                  } else if (k+1 === cellMatrix.length){
+                      minDistanceToObstacle = Math.min(minDistanceToObstacle, k-i-figure.y+1)
                   }
                   shapeOffset = i;
                 }
@@ -516,3 +545,4 @@ function getOutlineOffset(figure){
     }
     return minDistanceToObstacle-1;
 }
+
