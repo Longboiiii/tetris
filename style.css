@@ -46,6 +46,46 @@ body {
     color:#777777;
 }
 
+.touch-button {
+    display: none;
+}
+
 .menu-button:hover{
     background-color: #555c68;
+}
+
+@media screen and (max-width: 800px) {
+
+    #menu {
+        display:flex;
+        justify-content: center;
+        flex-direction: row;
+        max-width: 100%;
+    }
+
+    .menu-button {
+        display: none;
+    }
+
+    .touch-button {
+        display: inline;
+        padding: 10%;
+        font-size: 3rem;
+        opacity: 1;
+        background: rgba(255, 255, 255, 0.37);
+        border-style: double;
+        border-width: 5px;
+        border-radius: 30px;
+    }
+
+    .touch-button:hover {
+        background: rgb(255, 255, 255);;
+    }
+
+    #touch-button-down {
+        transform: rotate(270deg);
+        margin-left: 12px;
+        margin-right: 12px;
+    }
+
 }
