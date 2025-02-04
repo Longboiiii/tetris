@@ -7,6 +7,13 @@ const resetButton = document.querySelector('#reset-button');
 const counter = document.querySelector('#counter');
 
 let collisionEvent = new Event('collisionEvent');
+const KeyREvent = new KeyboardEvent("keydown", {
+    key: "R",
+    code: "KeyR",
+    keyCode: 82,
+    which: 82,
+    bubbles: true
+});
 
 const canvas = document.querySelector('#gameField');
 let context = canvas.getContext('2d');
@@ -114,8 +121,8 @@ window.addEventListener('collisionEvent', (event) => {
     pauseGame();
     startButton.removeEventListener('click', startButtonEvent);
     startButton.addEventListener('click', startButtonResetEvent);
-    let audio = new Audio(`offensiveEndGameAudio/${getRandomInt(4)}.mp3`);
-    audio.play();
+    //let audio = new Audio(`offensiveEndGameAudio/${getRandomInt(4)}.mp3`);
+    //audio.play();
 })
 
 //----------
@@ -154,6 +161,8 @@ function resetGame(){
 function pauseGame() {
     clearInterval(gameInterval);
     document.removeEventListener('keydown', keysListener);
+    unsetTouchListener();
+    document.removeEventListener('click', clickEventListener)
 }
 
 function startGame(){
@@ -183,6 +192,8 @@ function startGame(){
     }, 500);
 
     document.addEventListener('keydown', keysListener);
+    document.addEventListener('click', clickEventListener)
+    setTouchListener();
 }
 
 function getWinPoints(columns){
@@ -275,6 +286,78 @@ function keysListener(e){
             drawFigureOutline(randomFigure, getOutlineOffset(randomFigure));
             break;
     }
+}
+let startX, startY, endX, endY;
+function setTouchListener(){
+    canvas.addEventListener("touchstart", (event) => touchStartListener(event));
+    canvas.addEventListener("touchmove", (event) => touchMoveListener(event));
+}
+
+function unsetTouchListener(){
+    canvas.removeEventListener("touchstart", (event) => touchStartListener(event));
+    canvas.removeEventListener("touchmove", (event) => touchMoveListener(event));
+}
+
+function touchStartListener(event){
+    startX = startY = endX = endY = undefined;
+    const touch = event.touches[0]; // Берем первое касание
+    startX = touch.clientX;
+    startY = touch.clientY;
+}
+
+function touchMoveListener(event){
+    const touch = event.touches[0]; // Берем первое касание
+
+    endX = touch.clientX;
+    endY = touch.clientY;
+
+
+
+    if (endX !== undefined && endY !== undefined) {
+        const deltaX = endX - startX;
+        const deltaY = endY - startY;
+
+        if(Math.abs(deltaX) < cellSize && Math.abs(deltaY) < cellSize) {
+            return;
+        }
+
+        let direction = "";
+        let res, side;
+        if (Math.abs(deltaX) > Math.abs(deltaY)) {
+            if(deltaX > 0){
+                randomFigure.x += 1;
+                [res,side] = collisionCheck(randomFigure);
+                if(res){
+                    randomFigure.x += -1;
+                }
+            } else {
+                randomFigure.x--;
+                [res,side] = collisionCheck(randomFigure);
+                if(res){
+                    randomFigure.x++;
+                }
+            }
+        } else {
+            if(deltaY > 0){
+                randomFigure.y++;
+                [res,side] = collisionCheck(randomFigure);
+                if(res){
+                    randomFigure.y--;
+                }
+            }
+        }
+        clearField();
+        drawGameField();
+        drawFigure(randomFigure);
+        drawFigureOutline(randomFigure, getOutlineOffset(randomFigure));
+        //console.log(`Direction: ${direction}, End position: (${endX}, ${endY})`,deltaX);
+        startX = touch.clientX;
+        startY = touch.clientY;
+    }
+}
+
+function clickEventListener(){
+    canvas.dispatchEvent(KeyREvent);
 }
 
 function drawGrid(cellSize){
