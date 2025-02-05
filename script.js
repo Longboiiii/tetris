@@ -5,15 +5,9 @@ const startButton = document.querySelector('#start-button');
 const pauseButton = document.querySelector('#pause-button');
 const resetButton = document.querySelector('#reset-button');
 const counter = document.querySelector('#counter');
+const optionsButton = document.querySelector('#options-button');
 
 let collisionEvent = new Event('collisionEvent');
-const KeyREvent = new KeyboardEvent("keydown", {
-    key: "R",
-    code: "KeyR",
-    keyCode: 82,
-    which: 82,
-    bubbles: true
-});
 
 const canvas = document.querySelector('#gameField');
 let context = canvas.getContext('2d');
@@ -49,10 +43,15 @@ class Tetromino {
     }
 
     rotate() {
-        // Transpose matrix and reverse rows to rotate clockwise
+        this.rotateLeft();
+        this.rotateLeft();
+        this.rotateLeft();
+    }
+
+    rotateLeft() {
         this.shape = this.shape[0].map((_, index) =>
-            this.shape.map(row => row[index])
-        ).reverse();
+            this.shape.map(row => row[row.length - 1 - index])
+        );
     }
 }
 
@@ -64,7 +63,6 @@ class Cell {
     }
 }
 
-// Define all 7 Tetromino shapes (4x4 grids)
 const TETROMINOES = {
     I: new Tetromino([
         [0, 0, 0, 0],
@@ -109,6 +107,21 @@ const TETROMINOES = {
     ], ['#FF0000', '#CC0000', '#990000'])
 };
 
+let keyBinds = {
+    'MoveLeft': ['ArrowLeft'],
+    'MoveRight': ['ArrowRight'],
+    'MoveDown': ['ArrowDown'],
+    'DropDown': ['Space'],
+    'RotateRight': ['KeyE'],
+    'RotateLeft': ['KeyQ'],
+}
+
+let defaultKeyBinds = {};
+
+Object.entries(keyBinds).forEach(([key, value]) => {
+    defaultKeyBinds[key] = value;
+})
+
 //----------
 
 drawGameField();
@@ -132,6 +145,7 @@ startButton.addEventListener('click', startButtonEvent);
 function startButtonEvent (){
     pauseGame();
     startGame();
+    startButton.blur();
 }
 function startButtonResetEvent(){
     startButton.addEventListener('click', startButtonEvent);
@@ -141,11 +155,31 @@ function startButtonResetEvent(){
     startGame();
 }
 
-pauseButton.onclick = pauseGame;
+pauseButton.onclick = () => {
+    pauseGame();
+    pauseButton.blur();
+};
 resetButton.onclick = ()=>{
     pauseGame();
     resetGame();
+    resetButton.blur();
 };
+
+optionsButton.addEventListener('click', optionsClickEventListener);
+
+const optionsIconSources = ['gear-icon.svg', 'pen-icon.svg', 'spanner-and-screwdriver-icon.svg']
+let optionsIterator = 0;
+window.addEventListener('keydown', (e)=>{
+    if(e.code === 'Digit1'){
+        if(optionsIterator === optionsIconSources.length-1){
+            optionsIterator = 0;
+            optionsButton.firstElementChild.src = 'icons/' + optionsIconSources[optionsIterator];
+        } else {
+            optionsIterator++;
+            optionsButton.firstElementChild.src = 'icons/' + optionsIconSources[optionsIterator];
+        }
+    }
+})
 
 //----------
 
@@ -175,7 +209,6 @@ function startGame(){
         clearField();
         [res, side] = moveFigureDown(randomFigure);
         if(res){
-            console.log('collided');
             convertFigureToCells(randomFigure);
             randomFigure = getRandomTetromino();
             let winPoints  = getWinPoints(deleteFullRows());
@@ -192,7 +225,7 @@ function startGame(){
     }, 500);
 
     document.addEventListener('keydown', keysListener);
-    document.addEventListener('click', clickEventListener)
+    document.addEventListener('click', clickEventListener);
     setTouchListener();
 }
 
@@ -208,85 +241,89 @@ function getWinPoints(columns){
             return 1500;
     }
 }
-
+ //TODO: add WASD, rotation (Q/W), down jump
 function keysListener(e){
     let res, side;
-    switch (e.code) {
-        case 'ArrowDown':
-            clearField();
-            [res, side] = moveFigureDown(randomFigure);
-            if(res){
-                convertFigureToCells(randomFigure);
-                randomFigure = nextFigure;
-                nextFigure = getRandomTetromino();
-                let winPoints  = getWinPoints(deleteFullRows());
-                if(winPoints){
-                    pointsCounter += winPoints;
-                    counter.innerText = pointsCounter;
-                }
-                clearField();
+    if (keyBinds.MoveDown.includes(e.code)) {
+        clearField();
+        [res, side] = moveFigureDown(randomFigure);
+        if (res) {
+            convertFigureToCells(randomFigure);
+            randomFigure = nextFigure;
+            nextFigure = getRandomTetromino();
+            let winPoints = getWinPoints(deleteFullRows());
+            if (winPoints) {
+                pointsCounter += winPoints;
+                counter.innerText = pointsCounter;
             }
-            drawGameField();
-            drawFigure(randomFigure);
-            drawFigureOutline(randomFigure, getOutlineOffset(randomFigure));
-            break;
-        case 'ForKeyUp':
             clearField();
-            [res, side] = moveFigureUp(randomFigure);
-            if(res){
-                console.log('collided');
-            }
-            drawGameField();
-            drawFigure(randomFigure);
-            drawFigureOutline(randomFigure, getOutlineOffset(randomFigure));
-            break;
-        case 'ArrowLeft':
-            clearField();
-            [res, side] = moveFigureLeft(randomFigure);
-            if(res){
-                console.log('collided');
-            }
-            drawGameField();
-            drawFigure(randomFigure);
-            drawFigureOutline(randomFigure, getOutlineOffset(randomFigure));
-            break;
-        case 'ArrowRight':
-            clearField();
-            [res, side] = moveFigureRight(randomFigure);
-            if(res){
-                console.log('collided');
-            }
-            drawGameField();
-            drawFigure(randomFigure);
-            drawFigureOutline(randomFigure, getOutlineOffset(randomFigure));
-            break;
-        case 'KeyR':
+        }
+        drawGameField();
+        drawFigure(randomFigure);
+        drawFigureOutline(randomFigure, getOutlineOffset(randomFigure));
+    } else if (false) {
+        //functionality for moving up
+        clearField();
+        [res, side] = moveFigureUp(randomFigure);
+        if (res) {
+        }
+        drawGameField();
+        drawFigure(randomFigure);
+        drawFigureOutline(randomFigure, getOutlineOffset(randomFigure));
+    } else if (keyBinds.MoveLeft.includes(e.code)) {
+        clearField();
+        [res, side] = moveFigureLeft(randomFigure);
+        if (res) {
+        }
+        drawGameField();
+        drawFigure(randomFigure);
+        drawFigureOutline(randomFigure, getOutlineOffset(randomFigure));
+    } else if (keyBinds.MoveRight.includes(e.code)) {
+        clearField();
+        [res, side] = moveFigureRight(randomFigure);
+        if (res) {
+        }
+        drawGameField();
+        drawFigure(randomFigure);
+        drawFigureOutline(randomFigure, getOutlineOffset(randomFigure));
+    } else if (keyBinds.RotateRight.includes(e.code)) {
+        randomFigure.rotate();
+        [res, side] = collisionCheck(randomFigure);
+        if (res) {
             randomFigure.rotate();
+            randomFigure.rotate();
+            randomFigure.rotate();
+        }
+        clearField();
+        drawGameField();
+        drawFigure(randomFigure);
+        drawFigureOutline(randomFigure, getOutlineOffset(randomFigure));
+    } else if (keyBinds.RotateLeft.includes(e.code)) {
+            randomFigure.rotateLeft();
             [res, side] = collisionCheck(randomFigure);
-            if(res){
-                randomFigure.rotate();
-                randomFigure.rotate();
-                randomFigure.rotate();
+            if (res) {
+                randomFigure.rotateLeft();
+                randomFigure.rotateLeft();
+                randomFigure.rotateLeft();
             }
             clearField();
             drawGameField();
             drawFigure(randomFigure);
             drawFigureOutline(randomFigure, getOutlineOffset(randomFigure));
-            break;
-        case 'Space':
-            clearField();
-            for(let i = 0; i < gameFieldHeight; i++) {
-                [res, side] = moveFigureDown(randomFigure);
-                if(res){
-                    break;
-                }
+    } else if (keyBinds.DropDown.includes(e.code)) {
+        clearField();
+        for (let i = 0; i < gameFieldHeight; i++) {
+            [res, side] = moveFigureDown(randomFigure);
+            if (res) {
+                break;
             }
-            drawGameField();
-            drawFigure(randomFigure);
-            drawFigureOutline(randomFigure, getOutlineOffset(randomFigure));
-            break;
+        }
+        drawGameField();
+        drawFigure(randomFigure);
+        drawFigureOutline(randomFigure, getOutlineOffset(randomFigure));
     }
 }
+
 let startX, startY, endX, endY;
 function setTouchListener(){
     canvas.addEventListener("touchstart", (event) => touchStartListener(event));
@@ -357,7 +394,11 @@ function touchMoveListener(event){
 }
 
 function clickEventListener(){
-    canvas.dispatchEvent(KeyREvent);
+    let KeyEvent = new KeyboardEvent('keydown', {
+        code: keyBinds.RotateRight[0],
+        bubbles: true
+    })
+    canvas.dispatchEvent(KeyEvent);
 }
 
 function drawGrid(cellSize){
@@ -629,3 +670,95 @@ function getOutlineOffset(figure){
     return minDistanceToObstacle-1;
 }
 
+function optionsClickEventListener(event){
+    pauseGame();
+
+    let coverDiv = document.createElement('div');
+    coverDiv.classList.add('cover');
+
+    let optionsMenu = createElementFromHTML(`\n` +
+        `<div id="options-popup">\n` +
+        `    <h1>Options</h1>\n` +
+        `    <h2>Change controls</h2>\n` +
+        `    <ul>\n` +
+        `        <li><div>MoveLeft</div><div>${keyBinds.MoveLeft}</div></li>\n` +
+        `        <li><div>MoveRight</div><div>${keyBinds.MoveRight}</div></li>\n` +
+        `        <li><div>MoveDown</div><div>${keyBinds.MoveDown}</div></li>\n` +
+        `        <li><div>DropDown</div><div>${keyBinds.DropDown}</div></li>\n` +
+        `        <li><div>RotateRight</div><div>${keyBinds.RotateRight}</div></li>\n` +
+        `        <li><div>RotateLeft</div><div>${keyBinds.RotateLeft}</div></li>\n` +
+        `    </ul>\n` +
+        `    <button id="reset-binds-button">Set controls to default</button>\n` +
+        `    <h2>Multiplayer</h2>\n` +
+        `    <ul>\n` +
+        `    </ul>\n` +
+        `</div>`);
+
+    let closeButton = createElementFromHTML(`<div id="options-popup-close-button"><img src="icons/close-tab-icon.svg" alt="close"></div>`)
+    coverDiv.append(optionsMenu);
+    optionsMenu.append(closeButton);
+
+    for (let elem of coverDiv.querySelector('ul').children){
+        let button = createElementFromHTML('<div class="change-bind-button"><img src="icons/pen-icon.svg" alt="change"></div>>')
+        button.onclick = changeBindButtonListener;
+        elem.lastElementChild.append(button);
+    }
+
+    let resetBindsButton = optionsMenu.querySelector('#reset-binds-button');
+    resetBindsButton.onclick = () =>{
+        keyBinds = JSON.parse(JSON.stringify(defaultKeyBinds));
+        reopenOptions(coverDiv);
+    }
+
+    closeButton.onclick = ()=>{
+        coverDiv.remove();
+        startGame();
+    }
+
+    coverDiv.addEventListener('click', function(e){
+        e.stopPropagation();
+        if(e.target === coverDiv){
+            coverDiv.remove();
+            startGame();
+        }
+    });
+
+    document.addEventListener('keydown', closeOptionsListener)
+    function closeOptionsListener(e){
+        if(e.code === 'Escape'){
+            coverDiv.remove();
+            pauseGame();
+            startGame();
+        }
+        document.removeEventListener('keydown', closeOptionsListener);
+    }
+
+    document.documentElement.append(coverDiv);
+}
+
+function changeBindButtonListener(){
+    let parentText = this.parentElement.firstChild;
+    let text = parentText.textContent;
+    parentText.textContent = '';
+    window.addEventListener('keydown', keyChangeListener)
+    function keyChangeListener(e){
+        key = parentText.parentElement.previousElementSibling.textContent;
+        console.log(key);
+        keyBinds[key][0] = e.code;
+        parentText.textContent = e.code;
+        window.removeEventListener('keydown', keyChangeListener);
+    }
+
+}
+
+function createElementFromHTML(htmlString) {
+    let div = document.createElement('div');
+    div.innerHTML = htmlString.trim();
+
+    return div.firstChild;
+}
+
+function reopenOptions(coverDiv){
+    coverDiv.dispatchEvent(new MouseEvent('click'));
+    optionsButton.dispatchEvent(new MouseEvent('click'));
+}
