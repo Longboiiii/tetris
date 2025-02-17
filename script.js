@@ -762,3 +762,5 @@ function reopenOptions(coverDiv){
     coverDiv.dispatchEvent(new MouseEvent('click'));
     optionsButton.dispatchEvent(new MouseEvent('click'));
 }
+
+//TODO: font-size is too small
