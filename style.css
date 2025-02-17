@@ -4,7 +4,7 @@
     font-family: 'Futura Black', Geneva, Tahoma, sans-serif;
     margin: 0;
     padding: 0;
-    cursor: url('/icons/Link mano.cur'), pointer;
+    cursor: url('/icons/Link mano.cur'), pointer !important;
 }
 
 canvas {
